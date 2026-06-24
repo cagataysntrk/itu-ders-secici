@@ -18,12 +18,23 @@ class DriverManager:
 
         chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument("log-level=2")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
         # chrome_options.add_argument("--no-proxy-server")
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
         if headless:
             chrome_options.add_argument("--headless")
 
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        import shutil
+        chromedriver_path = shutil.which("chromium.chromedriver") or shutil.which("chromedriver")
+        if chromedriver_path:
+            Logger.log(f"Sistemde bulunan chromedriver kullanılıyor: {chromedriver_path}")
+            service = Service(executable_path=chromedriver_path)
+        else:
+            Logger.log("ChromeDriverManager ile chromedriver indiriliyor...")
+            service = Service(ChromeDriverManager().install())
+
+        driver = webdriver.Chrome(service=service, options=chrome_options)
         DriverManager.active_drivers.append(driver)
         return driver
     
